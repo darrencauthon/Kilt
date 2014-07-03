@@ -31,9 +31,9 @@ describe Kilt do
       describe "creating an object" do
 
         [
-          ['1/1/2014', 'cat', 'Apple',  Time.parse('1/1/2014').to_i.to_s + "000", 'apple' ],
-          ['2/2/2016', 'dog', 'Orange', Time.parse('2/2/2016').to_i.to_s + "000", 'orange'],
-        ].map { |v| Struct.new(:today, :type, :name, :unique_id, :slug).new *v }.each do |scenario|
+          ['1/1/2014', 'cat', :cats, 'Apple',  Time.parse('1/1/2014').to_i.to_s + "000", 'apple' ],
+          ['2/2/2016', 'dog', :dogs, 'Orange', Time.parse('2/2/2016').to_i.to_s + "000", 'orange'],
+        ].map { |v| Struct.new(:today, :type, :plural_type, :name, :unique_id, :slug).new *v }.each do |scenario|
 
           describe "basic scenarios" do
 
@@ -108,6 +108,17 @@ describe Kilt do
                 first['slug'].must_equal scenario.slug
                 second['slug'].must_equal "#{scenario.slug}-#{second['unique_id']}"
 
+              end
+
+              it "should have actually persisted two records" do
+                first  = Kilt::Object.new(scenario.type, values)
+                second = Kilt::Object.new(scenario.type, values.clone)
+
+                Kilt.create(first)
+                Timecop.freeze(Time.now + 5)
+                Kilt.create(second)
+
+                Kilt.send(scenario.plural_type).count.must_equal 2
               end
 
             end
